@@ -7,10 +7,15 @@ const login = async (req, res) => {
     try{
         const {username , password} = req.body;
         const user = await User.findOne({username});
+
+        if(!user){
+            return res.status(400).json({error : "Invalid username"})
+        }
+
         const isPasswordCorrect = await bcrypt.compare(password , user.password || "");
 
-        if(!user || !isPasswordCorrect){
-            return res.status(400).json({error: "Invalid username or password"})
+        if(!isPasswordCorrect){
+            return res.status(400).json({error: "Incorrect password"})
         }
 
         generateTokenAndCookie(user._id , res);
@@ -23,7 +28,7 @@ const login = async (req, res) => {
         })
 
     }catch(error){
-        console.log("Error in login controller");
+        console.log("Error in login controller" , error.message);
         res.status(500).json({error: "Internal server error"})
     }
 }
